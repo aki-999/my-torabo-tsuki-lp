@@ -1,0 +1,14 @@
+
+file_format: "1"
+id: torabo_tsuki_lp
+name: torabo_tsuki_lp
+type: shield
+features:
+  - keys
+  - studio
+outputs:
+  - usb
+  - ble
+siblings:
+  - torabo_tsuki_lp_left
+  - torabo_tsuki_lp_right

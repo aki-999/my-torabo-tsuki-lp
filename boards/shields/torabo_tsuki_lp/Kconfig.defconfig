@@ -1,0 +1,22 @@
+
+if SHIELD_TORABO_TSUKI_LP_LEFT || SHIELD_TORABO_TSUKI_LP_RIGHT
+
+config ZMK_KEYBOARD_NAME
+    default "torabo-tsuki"
+
+config ZMK_SPLIT
+    default y
+
+config SPI
+    default y
+
+config INPUT
+    default y
+
+config ZMK_MOUSE
+    default y
+
+config PAW3222
+    default y
+ 
+endif

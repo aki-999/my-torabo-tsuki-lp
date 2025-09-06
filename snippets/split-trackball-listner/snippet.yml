@@ -1,0 +1,3 @@
+name: split-trackball-listner
+append:
+  EXTRA_DTC_OVERLAY_FILE: split-trackball-listner.overlay
