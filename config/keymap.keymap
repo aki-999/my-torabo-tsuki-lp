@@ -1,7 +1,6 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
-#include <dt-bindings/zmk/outputs.h>
 #include <dt-bindings/zmk/pointing.h>
 
 / {
@@ -11,7 +10,6 @@
         bt_clear {
             bindings = <&bt BT_CLR>;
             key-positions = <28 29>;
-            layers = <2>;
         };
     };
 
@@ -20,11 +18,11 @@
 
         layer_0 {
             bindings = <
-&trans  &trans     &trans        &trans        &trans     &trans                                &trans       &trans    &trans     &trans    &trans                &trans
-&trans  &kp Q      &kp W         &kp E         &kp R      &kp T                                 &kp Y        &kp U     &kp I      &kp O     &kp P                 &trans
-&trans  &kp A      &kp S         &kp D         &kp F      &kp G      &trans      &trans         &kp H        &kp J     &kp K      &kp L     &kp LS(EQUAL)         &trans
-&trans  &kp Z      &kp X         &kp C         &kp V      &kp V      &kp ESCAPE  &kp B          &kp N        &kp M     &kp COMMA  &kp DOT   &mt RIGHT_SHIFT FSLH  &trans
-&trans  &kp LCTRL  &kp LEFT_ALT  &kp LEFT_WIN  &kp LSHFT  &kp SPACE  &lt 1 DEL   &kp BACKSPACE  &lt 3 ENTER  &kp BSPC  &kp RALT   &kp RGUI  &kp RCTRL             &trans
+&trans  &trans     &trans        &trans        &trans         &trans                                      &trans     &trans    &trans     &trans           &trans                &trans
+&trans  &kp Q      &kp W         &kp E         &kp R          &kp T                                       &kp Y      &kp U     &kp I      &kp O            &kp P                 &trans
+&trans  &kp A      &kp S         &kp D         &kp F          &kp G        &trans      &trans             &kp H      &kp J     &kp K      &kp L            &kp LS(EQUAL)         &trans
+&trans  &kp Z      &kp X         &kp C         &kp V          &kp V        &kp ESCAPE  &kp B              &kp N      &kp M     &kp COMMA  &kp DOT          &mt RIGHT_SHIFT FSLH  &trans
+&trans  &kp LCTRL  &kp LEFT_ALT  &kp LEFT_WIN  &mt LSHFT TAB  &lt 2 SPACE  &lt 3 DEL   &kp LS(BACKSPACE)  &kp ENTER  &kp BSPC  &kp RALT   &kp RIGHT_SHIFT  &mo 3                 &trans
             >;
         };
 
@@ -38,23 +36,23 @@
             >;
         };
 
-        layer_2 {
+        number-and-fn {
             bindings = <
-&trans  &trans            &trans            &trans      &trans      &trans                      &trans          &trans         &trans            &trans             &trans         &trans
-&trans  &kp LS(NUMBER_1)  &kp LS(NUMBER_2)  &kp LS(N3)  &kp LS(N4)  &kp LS(N5)                  &kp LS(N6)      &kp LS(N7)     &kp LS(N8)        &kp LS(N9)         &kp LS(N0)     &trans
-&trans  &kp N1            &kp N2            &kp N3      &kp N4      &kp N5      &trans  &trans  &kp LEFT_BRACE  &kp MINUS      &kp EQUAL         &kp RIGHT_BRACE    &kp COLON      &trans
-&trans  &kp N6            &kp N7            &kp N8      &kp N9      &kp N0      &trans  &trans  &kp LS(MINUS)   &kp LS(EQUAL)  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp BACKSLASH  &trans
-&trans  &trans            &trans            &trans      &trans      &trans      &trans  &trans  &kp TAB         &kp DEL        &trans            &trans             &trans         &trans
+&trans  &trans        &trans        &trans        &trans        &trans                        &trans        &trans        &trans        &trans        &trans        &trans
+&trans  &kp NUMBER_1  &kp NUMBER_2  &kp NUMBER_3  &kp NUMBER_4  &kp NUMBER_5                  &kp NUMBER_6  &kp NUMBER_7  &kp NUMBER_8  &kp NUMBER_9  &kp NUMBER_0  &trans
+&trans  &kp F1        &kp F2        &kp F3        &kp F4        &kp F5        &trans  &trans  &kp F6        &kp F7        &kp F8        &kp F9        &kp F10       &trans
+&trans  &kp F11       &kp F12       &none         &none         &none         &none   &none   &none         &none         &none         &none         &none         &trans
+&trans  &trans        &trans        &trans        &trans        &trans        &trans  &trans  &trans        &trans        &trans        &trans        &trans        &trans
             >;
         };
 
-        layer_3 {
+        kigou {
             bindings = <
-&trans  &trans   &trans   &trans        &trans        &trans                      &trans            &trans     &trans         &trans     &trans      &trans
-&trans  &kp F1   &kp F2   &kp F3        &kp F4        &kp F5                      &kp HOME          &kp PG_UP  &kp PAGE_DOWN  &kp END    &kp ESCAPE  &trans
-&trans  &kp F6   &kp F7   &kp F8        &kp F9        &kp F10     &trans  &trans  &kp LEFT          &kp DOWN   &kp UP_ARROW   &kp RIGHT  &kp TAB     &trans
-&trans  &kp F11  &kp F12  &out OUT_USB  &out OUT_BLE  &bt BT_NXT  &trans  &trans  &kp SINGLE_QUOTE  &kp DQT    &kp GRAVE      &kp TILDE  &kp PIPE    &trans
-&trans  &trans   &trans   &trans        &kp DELETE    &kp TAB     &trans  &trans  &trans            &trans     &trans         &trans     &trans      &trans
+&trans  &trans    &trans          &trans          &trans      &trans                               &trans         &trans            &trans             &trans                &trans                 &trans
+&trans  &kp EXCL  &kp AT          &kp HASH        &kp DOLLAR  &kp PERCENT                          &kp CARET      &kp AMPERSAND     &kp ASTRK          &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &trans
+&trans  &none     &none           &kp UP_ARROW    &none       &none        &trans     &trans       &kp BACKSLASH  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp SEMICOLON         &kp LS(EQUAL)          &trans
+&trans  &none     &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT   &none        &kp GRAVE  &kp LS(SQT)  &none          &none             &kp LESS_THAN      &kp GREATER_THAN      &kp SLASH              &trans
+&trans  &trans    &trans          &trans          &trans      &trans       &trans     &trans       &trans         &trans            &trans             &trans                &trans                 &trans
             >;
         };
     };
