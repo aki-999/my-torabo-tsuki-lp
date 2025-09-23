@@ -18,11 +18,11 @@
 
         layer_0 {
             bindings = <
-&trans  &trans                   &trans        &trans        &trans             &trans                                  &trans     &trans  &trans     &trans           &trans                &trans
-&trans  &kp Q                    &kp W         &kp E         &kp R              &kp T                                   &kp Y      &kp U   &kp I      &kp O            &kp P                 &trans
-&trans  &kp A                    &kp S         &kp D         &kp F              &kp G        &trans      &trans         &kp H      &kp J   &kp K      &kp L            &kp EQUAL             &trans
-&trans  &mt LEFT_SHIFT CAPSLOCK  &kp Z         &kp X         &kp C              &kp V        &kp ESCAPE  &kp B          &kp N      &kp M   &kp COMMA  &kp DOT          &mt RIGHT_SHIFT FSLH  &trans
-&trans  &kp LCTRL                &kp LEFT_ALT  &kp LEFT_WIN  &mt LC(LSHFT) TAB  &lt 2 SPACE  &lt 3 DEL   &kp BACKSPACE  &kp ENTER  &none   &kp RALT   &kp RIGHT_SHIFT  &mo 3                 &trans
+&trans  &trans                       &trans        &trans        &trans             &trans                                  &trans     &trans  &trans     &trans           &trans                &trans
+&trans  &kp Q                        &kp W         &kp E         &kp R              &kp T                                   &kp Y      &kp U   &kp I      &kp O            &kp P                 &trans
+&trans  &kp A                        &kp S         &kp D         &kp F              &kp G        &trans      &trans         &kp H      &kp J   &kp K      &kp L            &kp MINUS             &trans
+&trans  &mt LEFT_SHIFT LS(CAPSLOCK)  &kp Z         &kp X         &kp C              &kp V        &kp ESCAPE  &kp B          &kp N      &kp M   &kp COMMA  &kp DOT          &mt RIGHT_SHIFT FSLH  &trans
+&trans  &kp LCTRL                    &kp LEFT_ALT  &kp LEFT_WIN  &mt LC(LSHFT) TAB  &lt 2 SPACE  &lt 3 DEL   &kp BACKSPACE  &kp ENTER  &none   &kp RALT   &kp RIGHT_SHIFT  &mo 3                 &trans
             >;
         };
 
@@ -50,7 +50,7 @@
             bindings = <
 &trans  &trans    &trans          &trans          &trans      &trans                               &trans         &trans            &trans             &trans                &trans                 &trans
 &trans  &kp EXCL  &kp AT          &kp HASH        &kp DOLLAR  &kp PERCENT                          &kp CARET      &kp AMPERSAND     &kp ASTRK          &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &trans
-&trans  &none     &none           &kp UP_ARROW    &none       &none        &trans     &trans       &kp BACKSLASH  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp SEMICOLON         &kp LS(EQUAL)          &trans
+&trans  &none     &none           &kp UP_ARROW    &none       &none        &trans     &trans       &kp BACKSLASH  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp SEMICOLON         &kp EQUAL              &trans
 &trans  &none     &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT   &none        &kp GRAVE  &kp LS(SQT)  &none          &none             &kp LESS_THAN      &kp GREATER_THAN      &kp SLASH              &trans
 &trans  &trans    &trans          &trans          &trans      &trans       &trans     &trans       &trans         &trans            &trans             &kp RS(RIGHT_ALT)     &trans                 &trans
             >;
