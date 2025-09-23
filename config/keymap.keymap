@@ -18,11 +18,11 @@
 
         layer_0 {
             bindings = <
-&trans  &trans            &trans        &trans        &trans             &trans                                                       &trans     &trans  &trans     &trans           &trans                &trans
-&trans  &kp Q             &kp W         &kp E         &kp R              &kp T                                                        &kp Y      &kp U   &kp I      &kp O            &kp P                 &trans
-&trans  &kp A             &kp S         &kp D         &kp F              &kp G                             &trans      &trans         &kp H      &kp J   &kp K      &kp L            &kp LS(EQUAL)         &trans
-&trans  &mt LEFT_SHIFT Z  &kp X         &kp C         &kp V              &mt CAPSLOCK LANG_ZENKAKUHANKAKU  &kp ESCAPE  &kp B          &kp N      &kp M   &kp COMMA  &kp DOT          &mt RIGHT_SHIFT FSLH  &trans
-&trans  &kp LCTRL         &kp LEFT_ALT  &kp LEFT_WIN  &mt LC(LSHFT) TAB  &lt 2 SPACE                       &lt 3 DEL   &kp BACKSPACE  &kp ENTER  &none   &kp RALT   &kp RIGHT_SHIFT  &mo 3                 &trans
+&trans  &trans                   &trans        &trans        &trans             &trans                                  &trans     &trans  &trans     &trans           &trans                &trans
+&trans  &kp Q                    &kp W         &kp E         &kp R              &kp T                                   &kp Y      &kp U   &kp I      &kp O            &kp P                 &trans
+&trans  &kp A                    &kp S         &kp D         &kp F              &kp G        &trans      &trans         &kp H      &kp J   &kp K      &kp L            &kp EQUAL             &trans
+&trans  &mt LEFT_SHIFT CAPSLOCK  &kp Z         &kp X         &kp C              &kp V        &kp ESCAPE  &kp B          &kp N      &kp M   &kp COMMA  &kp DOT          &mt RIGHT_SHIFT FSLH  &trans
+&trans  &kp LCTRL                &kp LEFT_ALT  &kp LEFT_WIN  &mt LC(LSHFT) TAB  &lt 2 SPACE  &lt 3 DEL   &kp BACKSPACE  &kp ENTER  &none   &kp RALT   &kp RIGHT_SHIFT  &mo 3                 &trans
             >;
         };
 
