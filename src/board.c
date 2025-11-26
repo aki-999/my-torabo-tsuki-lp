@@ -333,8 +333,8 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
     for (size_t i = 0; i < ARRAY_SIZE(jis_to_us_table); i++) {
         if (jis_to_us_table[i].jis == keycode) {
             uint32_t us_keycode = jis_to_us_table[i].us;
-            bool need_shift = (us_keycode & QK_LSFT) == QK_LSFT;
-            uint32_t base_keycode = need_shift ? (us_keycode ^ QK_LSFT) : us_keycode;
+            bool need_shift = (us_keycode >> 8) != 0;  // Shift ビットチェック
+            uint32_t base_keycode = us_keycode & 0xFF;
             
             bool shift_currently_active = gs_lshift || gs_rshift;
 
