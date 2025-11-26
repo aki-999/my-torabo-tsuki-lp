@@ -273,88 +273,39 @@ static bool gs_rshift = false;
  * proc_regist_keycode: 押下/解放イベントを受けて、
  * 変換先キー（シフトあり/なしそれぞれ）を適切に press/release する。
  */
-/*
- * proc_regist_keycode: 押下/解放イベントを受けて、
- * 変換先キー（シフトあり/なしそれぞれ）を適切に press/release する。
- */
 static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
                                 uint32_t regist_ifshift, bool is_shift_ifshift,
                                 uint32_t regist, bool is_shift) {
     bool shift_now = gs_lshift || gs_rshift;
-    struct zmk_keycode_state_changed new_ev = *ev;
 
     if (ev->state) {
         if (shift_now) {
             if (!is_shift_ifshift) {
-                if (gs_lshift) {
-                    new_ev.keycode = LEFT_SHIFT;
-                    new_ev.state = 0;
-                    ZMK_EVENT_RAISE(new_ev);
-                }
-                if (gs_rshift) {
-                    new_ev.keycode = RIGHT_SHIFT;
-                    new_ev.state = 0;
-                    ZMK_EVENT_RAISE(new_ev);
-                }
+                if (gs_lshift) zmk_hid_register_mod(MOD_LSFT);
+                if (gs_rshift) zmk_hid_register_mod(MOD_RSFT);
             }
-            new_ev.keycode = regist_ifshift;
-            new_ev.state = 1;
-            ZMK_EVENT_RAISE(new_ev);
+            zmk_hid_register_keycode(regist_ifshift);
         } else {
-            if (is_shift) {
-                new_ev.keycode = LEFT_SHIFT;
-                new_ev.state = 1;
-                ZMK_EVENT_RAISE(new_ev);
-            }
-            new_ev.keycode = regist;
-            new_ev.state = 1;
-            ZMK_EVENT_RAISE(new_ev);
+            if (is_shift) zmk_hid_register_mod(MOD_LSFT);
+            zmk_hid_register_keycode(regist);
         }
     } else {
         /* release */
         if (shift_now && !is_shift_ifshift) {
-            if (gs_lshift) {
-                new_ev.keycode = LEFT_SHIFT;
-                new_ev.state = 0;
-                ZMK_EVENT_RAISE(new_ev);
-            }
-            if (gs_rshift) {
-                new_ev.keycode = RIGHT_SHIFT;
-                new_ev.state = 0;
-                ZMK_EVENT_RAISE(new_ev);
-            }
+            if (gs_lshift) zmk_hid_unregister_mod(MOD_LSFT);
+            if (gs_rshift) zmk_hid_unregister_mod(MOD_RSFT);
         }
 
-        new_ev.keycode = regist_ifshift;
-        new_ev.state = 0;
-        ZMK_EVENT_RAISE(new_ev);
+        zmk_hid_unregister_keycode(regist_ifshift);
 
         if (shift_now && !is_shift_ifshift) {
-            if (gs_lshift) {
-                new_ev.keycode = LEFT_SHIFT;
-                new_ev.state = 1;
-                ZMK_EVENT_RAISE(new_ev);
-            }
-            if (gs_rshift) {
-                new_ev.keycode = RIGHT_SHIFT;
-                new_ev.state = 1;
-                ZMK_EVENT_RAISE(new_ev);
-            }
+            if (gs_lshift) zmk_hid_register_mod(MOD_LSFT);
+            if (gs_rshift) zmk_hid_register_mod(MOD_RSFT);
         }
 
-        if (!shift_now && is_shift) {
-            new_ev.keycode = LEFT_SHIFT;
-            new_ev.state = 1;
-            ZMK_EVENT_RAISE(new_ev);
-        }
-        new_ev.keycode = regist;
-        new_ev.state = 0;
-        ZMK_EVENT_RAISE(new_ev);
-        if (!shift_now && is_shift) {
-            new_ev.keycode = LEFT_SHIFT;
-            new_ev.state = 0;
-            ZMK_EVENT_RAISE(new_ev);
-        }
+        if (!shift_now && is_shift) zmk_hid_register_mod(MOD_LSFT);
+        zmk_hid_unregister_keycode(regist);
+        if (!shift_now && is_shift) zmk_hid_unregister_mod(MOD_LSFT);
     }
 }
 
@@ -377,18 +328,20 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
 
     /* CAPS: 半角/全角相当 */
     if (keycode == CAPSLOCK) {
-        struct zmk_keycode_state_changed new_ev = *ev;
-        new_ev.keycode = INT1;
-        ZMK_EVENT_RAISE(new_ev);
+        if (ev->state) {
+            zmk_hid_register_keycode(INT1);
+        } else {
+            zmk_hid_unregister_keycode(INT1);
+        }
         return ZMK_EV_EVENT_HANDLED;
     }
 
     /* JIS ↔ US 配列変換テーブル */
     switch (keycode) {
-        case N2:  // KEY_2 → N2
+        case N2:
             proc_regist_keycode(ev, LBRC, false, N2, false);
             return ZMK_EV_EVENT_HANDLED;
-        case N6:  // KEY_6 → N6
+        case N6:
             proc_regist_keycode(ev, EQUAL, false, N6, false);
             return ZMK_EV_EVENT_HANDLED;
         case N7:
@@ -415,7 +368,7 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
         case RBRC:
             proc_regist_keycode(ev, NON_US_HASH, true, NON_US_HASH, false);
             return ZMK_EV_EVENT_HANDLED;
-        case BSLH:  // KEY_BACKSLASH → BSLH
+        case BSLH:
             proc_regist_keycode(ev, INT3, true, INT1, false);
             return ZMK_EV_EVENT_HANDLED;
         case SEMICOLON:
@@ -442,22 +395,22 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
         case ASTERISK:
             proc_regist_keycode(ev, QUOTE, true, QUOTE, true);
             return ZMK_EV_EVENT_HANDLED;
-        case LPAR:  // KEY_LEFT_PAREN → LPAR
+        case LPAR:
             proc_regist_keycode(ev, N8, true, N8, true);
             return ZMK_EV_EVENT_HANDLED;
-        case RPAR:  // KEY_RIGHT_PAREN → RPAR
+        case RPAR:
             proc_regist_keycode(ev, N9, true, N9, true);
             return ZMK_EV_EVENT_HANDLED;
-        case UNDER:  // KEY_UNDERSCORE → UNDER
+        case UNDER:
             proc_regist_keycode(ev, INT1, true, INT1, true);
             return ZMK_EV_EVENT_HANDLED;
         case PLUS:
             proc_regist_keycode(ev, SEMICOLON, true, SEMICOLON, true);
             return ZMK_EV_EVENT_HANDLED;
-        case LBKT:  // KEY_LEFT_CURLY → LBKT (疑問: LEFT_CURLYは存在しないため LBRC で代用)
+        case LBKT:
             proc_regist_keycode(ev, RBRC, true, RBRC, true);
             return ZMK_EV_EVENT_HANDLED;
-        case RBKT:  // KEY_RIGHT_CURLY → RBKT
+        case RBKT:
             proc_regist_keycode(ev, NON_US_HASH, true, NON_US_HASH, true);
             return ZMK_EV_EVENT_HANDLED;
         case PIPE:
@@ -469,7 +422,7 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
         case DQUOTE:
             proc_regist_keycode(ev, N2, true, N2, true);
             return ZMK_EV_EVENT_HANDLED;
-        case PEQL:  // KEY_PEQUAL → PEQL
+        case PEQL:
             proc_regist_keycode(ev, MINUS, true, MINUS, true);
             return ZMK_EV_EVENT_HANDLED;
         case COMMA:
