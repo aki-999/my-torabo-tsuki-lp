@@ -15,6 +15,9 @@
 #include <zmk/events/activity_state_changed.h>
 #include <zmk/events/split_peripheral_status_changed.h>
 #include <zmk/usb.h>
+#include <zmk/event_manager.h>
+#include <zmk/hid.h>
+#include <zmk/keys.h>
 
 LOG_MODULE_REGISTER(split_power_mgmt, CONFIG_ZMK_LOG_LEVEL);
 
@@ -42,6 +45,9 @@ static struct k_work_delayable power_mode_work;
 static enum power_mode current_mode = POWER_MODE_ACTIVE;
 static int64_t last_activity_time = 0;
 static struct bt_conn *split_conn = NULL;
+
+static bool gs_lshift = false;
+static bool gs_rshift = false;
 
 // Power mode transition handler
 static void power_mode_transition(struct k_work *work) {
@@ -262,5 +268,184 @@ static int split_power_mgmt_init(void) {
 INPUT_CALLBACK_DEFINE(DEVICE_DT_GET_OR_NULL(DT_NODELABEL(trackball)) , mouse_input_callback);
 
 SYS_INIT(split_power_mgmt_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
+
+/*
+ * proc_regist_keycode: 押下/解放イベントを受けて、
+ * 変換先キー（シフトあり/なしそれぞれ）を適切に press/release する。
+ *
+ * regist_ifshift: シフト押下時に送るキーコード
+ * is_shift_ifshift: 上記がシフトを必要とするか
+ * regist: シフト無し時に送るキーコード
+ * is_shift: 上記がシフトを必要とするか
+ *
+ * （QMK の実装と同等の挙動を目指しています）
+ */
+static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
+                                uint32_t regist_ifshift, bool is_shift_ifshift,
+                                uint32_t regist, bool is_shift) {
+    bool shift_now = gs_lshift || gs_rshift;
+
+    if (ev->pressed) {
+        if (shift_now) {
+            if (!is_shift_ifshift) {
+                if (gs_lshift) zmk_hid_keyboard_release(KEY_LEFT_SHIFT);
+                if (gs_rshift) zmk_hid_keyboard_release(KEY_RIGHT_SHIFT);
+            }
+            zmk_hid_keyboard_press(regist_ifshift);
+        } else {
+            if (is_shift) zmk_hid_keyboard_press(KEY_LEFT_SHIFT);
+            zmk_hid_keyboard_press(regist);
+        }
+    } else {
+        /* release */
+        if (shift_now && !is_shift_ifshift) {
+            if (gs_lshift) zmk_hid_keyboard_release(KEY_LEFT_SHIFT);
+            if (gs_rshift) zmk_hid_keyboard_release(KEY_RIGHT_SHIFT);
+        }
+
+        zmk_hid_keyboard_release(regist_ifshift);
+
+        if (shift_now && !is_shift_ifshift) {
+            if (gs_lshift) zmk_hid_keyboard_press(KEY_LEFT_SHIFT);
+            if (gs_rshift) zmk_hid_keyboard_press(KEY_RIGHT_SHIFT);
+        }
+
+        if (!shift_now && is_shift) zmk_hid_keyboard_press(KEY_LEFT_SHIFT);
+        zmk_hid_keyboard_release(regist);
+        if (!shift_now && is_shift) zmk_hid_keyboard_release(KEY_LEFT_SHIFT);
+    }
+}
+
+/* キーイベントを受けて変換を行うリスナー */
+static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
+    const struct zmk_keycode_state_changed *ev = as_zmk_keycode_state_changed(eh);
+    if (!ev) return ZMK_EV_EVENT_BUBBLE;
+
+    uint32_t keycode = ev->keycode;
+
+    /* シフトの物理状態をトラッキング */
+    switch (keycode) {
+    case KEY_LEFT_SHIFT:
+        gs_lshift = ev->pressed;
+        return ZMK_EV_EVENT_BUBBLE;
+    case KEY_RIGHT_SHIFT:
+        gs_rshift = ev->pressed;
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    /* CAPS: 単押し（および長押しも区別せず）で JIS の半角/全角 相当を送る。
+     * ここでは KEY_CAPSLOCK を受けたら、KEY_INTERNATIONAL1 (半角/全角) 相当を送る。
+     * 実際のホストで動くキーコードが異なる場合は調整してください。
+     */
+    if (keycode == KEY_CAPSLOCK) {
+        /* KEY_INTERNATIONAL1 は多くの環境で半角/全角に相当 */
+        uint32_t target = KEY_INTERNATIONAL1;
+        if (ev->pressed) zmk_hid_keyboard_press(target);
+        else zmk_hid_keyboard_release(target);
+        return ZMK_EV_EVENT_HANDLED;
+    }
+
+    /* ここから QMK のテーブルに準じた変換を行う。
+     * 変換表は提示いただいたものをベースにしています。
+     * 必要に応じてさらにキーを追加してください。
+     */
+    switch (keycode) {
+        case KEY_2:
+            proc_regist_keycode(ev, KEY_LEFT_BRACE, false, KEY_2, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_6:
+            proc_regist_keycode(ev, KEY_EQUAL, false, KEY_6, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_7:
+            proc_regist_keycode(ev, KEY_6, true, KEY_7, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_8:
+            proc_regist_keycode(ev, KEY_QUOTE, true, KEY_8, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_9:
+            proc_regist_keycode(ev, KEY_8, true, KEY_9, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_0:
+            proc_regist_keycode(ev, KEY_9, true, KEY_0, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_MINUS:
+            proc_regist_keycode(ev, KEY_INT1, true, KEY_MINUS, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_EQUAL:
+            proc_regist_keycode(ev, KEY_SEMICOLON, true, KEY_MINUS, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_LEFT_BRACE:
+            proc_regist_keycode(ev, KEY_RIGHT_BRACE, true, KEY_RIGHT_BRACE, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_RIGHT_BRACE:
+            proc_regist_keycode(ev, KEY_NON_US_HASH, true, KEY_NON_US_HASH, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_BACKSLASH:
+            proc_regist_keycode(ev, KEY_INT3, true, KEY_INT1, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_SEMICOLON:
+            proc_regist_keycode(ev, KEY_QUOTE, false, KEY_SEMICOLON, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_QUOTE:
+            proc_regist_keycode(ev, KEY_2, true, KEY_7, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_GRAVE:
+            proc_regist_keycode(ev, KEY_EQUAL, true, KEY_LEFT_BRACE, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_TILD:
+            proc_regist_keycode(ev, KEY_EQUAL, true, KEY_EQUAL, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_AT:
+            proc_regist_keycode(ev, KEY_LEFT_BRACE, false, KEY_LEFT_BRACE, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_CARET:
+            proc_regist_keycode(ev, KEY_EQUAL, false, KEY_EQUAL, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_AMPERSAND:
+            proc_regist_keycode(ev, KEY_6, true, KEY_6, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_ASTERISK:
+            proc_regist_keycode(ev, KEY_QUOTE, true, KEY_QUOTE, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_LEFT_PAREN:
+            proc_regist_keycode(ev, KEY_8, true, KEY_8, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_RIGHT_PAREN:
+            proc_regist_keycode(ev, KEY_9, true, KEY_9, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_UNDERSCORE:
+            proc_regist_keycode(ev, KEY_INT1, true, KEY_INT1, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_PLUS:
+            proc_regist_keycode(ev, KEY_SEMICOLON, true, KEY_SEMICOLON, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_LEFT_CURLY:
+            proc_regist_keycode(ev, KEY_RIGHT_BRACE, true, KEY_RIGHT_BRACE, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_RIGHT_CURLY:
+            proc_regist_keycode(ev, KEY_NON_US_HASH, true, KEY_NON_US_HASH, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_PIPE:
+            proc_regist_keycode(ev, KEY_INT3, true, KEY_INT3, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_COLON:
+            proc_regist_keycode(ev, KEY_QUOTE, false, KEY_QUOTE, false);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_DQUOTE:
+            proc_regist_keycode(ev, KEY_2, true, KEY_2, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_PEQUAL:
+            proc_regist_keycode(ev, KEY_MINUS, true, KEY_MINUS, true);
+            return ZMK_EV_EVENT_HANDLED;
+        case KEY_COMMA:
+            proc_regist_keycode(ev, KEY_COMMA, false, KEY_COMMA, false);
+            return ZMK_EV_EVENT_HANDLED;
+    }
+
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(us_printed_on_jis_listener, us_printed_on_jis_keycode_listener);
+ZMK_SUBSCRIPTION(us_printed_on_jis_listener, zmk_keycode_state_changed);
 
 #endif /* CONFIG_ZMK_SPLIT_ROLE_CENTRAL */
