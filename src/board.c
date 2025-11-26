@@ -46,9 +46,6 @@ static enum power_mode current_mode = POWER_MODE_ACTIVE;
 static int64_t last_activity_time = 0;
 static struct bt_conn *split_conn = NULL;
 
-static bool gs_lshift = false;
-static bool gs_rshift = false;
-
 // Power mode transition handler
 static void power_mode_transition(struct k_work *work) {
     if (!split_conn) {
@@ -269,50 +266,91 @@ INPUT_CALLBACK_DEFINE(DEVICE_DT_GET_OR_NULL(DT_NODELABEL(trackball)) , mouse_inp
 
 SYS_INIT(split_power_mgmt_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 
+static bool gs_lshift = false;
+static bool gs_rshift = false;
+
 /*
  * proc_regist_keycode: 押下/解放イベントを受けて、
  * 変換先キー（シフトあり/なしそれぞれ）を適切に press/release する。
- *
- * regist_ifshift: シフト押下時に送るキーコード
- * is_shift_ifshift: 上記がシフトを必要とするか
- * regist: シフト無し時に送るキーコード
- * is_shift: 上記がシフトを必要とするか
- *
- * （QMK の実装と同等の挙動を目指しています）
  */
 static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
                                 uint32_t regist_ifshift, bool is_shift_ifshift,
                                 uint32_t regist, bool is_shift) {
     bool shift_now = gs_lshift || gs_rshift;
+    struct zmk_keycode_state_changed new_ev = *ev;
 
     if (ev->pressed) {
         if (shift_now) {
             if (!is_shift_ifshift) {
-                if (gs_lshift) zmk_hid_keyboard_release(KEY_LEFT_SHIFT);
-                if (gs_rshift) zmk_hid_keyboard_release(KEY_RIGHT_SHIFT);
+                if (gs_lshift) {
+                    new_ev.keycode = KEY_LEFT_SHIFT;
+                    new_ev.pressed = false;
+                    zmk_keymap_binding_process_record(&new_ev);
+                }
+                if (gs_rshift) {
+                    new_ev.keycode = KEY_RIGHT_SHIFT;
+                    new_ev.pressed = false;
+                    zmk_keymap_binding_process_record(&new_ev);
+                }
             }
-            zmk_hid_keyboard_press(regist_ifshift);
+            new_ev.keycode = regist_ifshift;
+            new_ev.pressed = true;
+            zmk_keymap_binding_process_record(&new_ev);
         } else {
-            if (is_shift) zmk_hid_keyboard_press(KEY_LEFT_SHIFT);
-            zmk_hid_keyboard_press(regist);
+            if (is_shift) {
+                new_ev.keycode = KEY_LEFT_SHIFT;
+                new_ev.pressed = true;
+                zmk_keymap_binding_process_record(&new_ev);
+            }
+            new_ev.keycode = regist;
+            new_ev.pressed = true;
+            zmk_keymap_binding_process_record(&new_ev);
         }
     } else {
         /* release */
         if (shift_now && !is_shift_ifshift) {
-            if (gs_lshift) zmk_hid_keyboard_release(KEY_LEFT_SHIFT);
-            if (gs_rshift) zmk_hid_keyboard_release(KEY_RIGHT_SHIFT);
+            if (gs_lshift) {
+                new_ev.keycode = KEY_LEFT_SHIFT;
+                new_ev.pressed = false;
+                zmk_keymap_binding_process_record(&new_ev);
+            }
+            if (gs_rshift) {
+                new_ev.keycode = KEY_RIGHT_SHIFT;
+                new_ev.pressed = false;
+                zmk_keymap_binding_process_record(&new_ev);
+            }
         }
 
-        zmk_hid_keyboard_release(regist_ifshift);
+        new_ev.keycode = regist_ifshift;
+        new_ev.pressed = false;
+        zmk_keymap_binding_process_record(&new_ev);
 
         if (shift_now && !is_shift_ifshift) {
-            if (gs_lshift) zmk_hid_keyboard_press(KEY_LEFT_SHIFT);
-            if (gs_rshift) zmk_hid_keyboard_press(KEY_RIGHT_SHIFT);
+            if (gs_lshift) {
+                new_ev.keycode = KEY_LEFT_SHIFT;
+                new_ev.pressed = true;
+                zmk_keymap_binding_process_record(&new_ev);
+            }
+            if (gs_rshift) {
+                new_ev.keycode = KEY_RIGHT_SHIFT;
+                new_ev.pressed = true;
+                zmk_keymap_binding_process_record(&new_ev);
+            }
         }
 
-        if (!shift_now && is_shift) zmk_hid_keyboard_press(KEY_LEFT_SHIFT);
-        zmk_hid_keyboard_release(regist);
-        if (!shift_now && is_shift) zmk_hid_keyboard_release(KEY_LEFT_SHIFT);
+        if (!shift_now && is_shift) {
+            new_ev.keycode = KEY_LEFT_SHIFT;
+            new_ev.pressed = true;
+            zmk_keymap_binding_process_record(&new_ev);
+        }
+        new_ev.keycode = regist;
+        new_ev.pressed = false;
+        zmk_keymap_binding_process_record(&new_ev);
+        if (!shift_now && is_shift) {
+            new_ev.keycode = KEY_LEFT_SHIFT;
+            new_ev.pressed = false;
+            zmk_keymap_binding_process_record(&new_ev);
+        }
     }
 }
 
@@ -333,22 +371,15 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 
-    /* CAPS: 単押し（および長押しも区別せず）で JIS の半角/全角 相当を送る。
-     * ここでは KEY_CAPSLOCK を受けたら、KEY_INTERNATIONAL1 (半角/全角) 相当を送る。
-     * 実際のホストで動くキーコードが異なる場合は調整してください。
-     */
+    /* CAPS: 半角/全角相当 */
     if (keycode == KEY_CAPSLOCK) {
-        /* KEY_INTERNATIONAL1 は多くの環境で半角/全角に相当 */
-        uint32_t target = KEY_INTERNATIONAL1;
-        if (ev->pressed) zmk_hid_keyboard_press(target);
-        else zmk_hid_keyboard_release(target);
+        struct zmk_keycode_state_changed new_ev = *ev;
+        new_ev.keycode = KEY_INTERNATIONAL1;
+        zmk_keymap_binding_process_record(&new_ev);
         return ZMK_EV_EVENT_HANDLED;
     }
 
-    /* ここから QMK のテーブルに準じた変換を行う。
-     * 変換表は提示いただいたものをベースにしています。
-     * 必要に応じてさらにキーを追加してください。
-     */
+    /* JIS ↔ US 配列変換テーブル */
     switch (keycode) {
         case KEY_2:
             proc_regist_keycode(ev, KEY_LEFT_BRACE, false, KEY_2, false);
