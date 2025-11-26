@@ -48,11 +48,11 @@
 
         kigou {
             bindings = <
-&trans  &trans    &trans          &trans          &trans      &trans                               &trans         &trans            &trans             &trans                &trans                 &trans
-&trans  &kp EXCL  &kp AT          &kp HASH        &kp DOLLAR  &kp PERCENT                          &kp CARET      &kp AMPERSAND     &kp ASTRK          &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &trans
-&trans  &none     &none           &kp UP_ARROW    &none       &none        &trans     &trans       &kp BACKSLASH  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp SEMICOLON         &kp EQUAL              &trans
-&trans  &none     &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT   &none        &kp GRAVE  &kp LS(SQT)  &none          &none             &kp LESS_THAN      &kp GREATER_THAN      &kp SLASH              &trans
-&trans  &trans    &trans          &trans          &trans      &trans       &trans     &trans       &trans         &trans            &trans             &kp RS(RIGHT_ALT)     &trans                 &trans
+&trans  &trans          &trans          &trans          &trans      &trans                               &trans         &trans            &trans             &trans                &trans                 &trans
+&trans  &kp EXCL        &kp AT          &kp HASH        &kp DOLLAR  &kp PERCENT                          &kp CARET      &kp AMPERSAND     &kp ASTRK          &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &trans
+&trans  &none           &none           &kp UP_ARROW    &none       &none        &trans     &trans       &kp BACKSLASH  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp SEMICOLON         &kp EQUAL              &trans
+&trans  &kp LEFT_SHIFT  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT   &none        &kp GRAVE  &kp LS(SQT)  &none          &none             &kp LESS_THAN      &kp GREATER_THAN      &kp SLASH              &trans
+&trans  &trans          &trans          &trans          &trans      &trans       &trans     &trans       &trans         &trans            &trans             &kp RS(RIGHT_ALT)     &trans                 &trans
             >;
         };
 
