@@ -269,7 +269,6 @@ SYS_INIT(split_power_mgmt_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 static bool gs_lshift = false;
 static bool gs_rshift = false;
 
-/* HID キーコードを送信 */
 static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
                                 uint32_t regist_ifshift, bool is_shift_ifshift,
                                 uint32_t regist, bool is_shift) {
@@ -286,7 +285,6 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
             if (is_shift) zmk_hid_register_mods(MOD_LSFT);
             zmk_hid_keyboard_press(regist);
         }
-        zmk_hid_keyboard_report_send();
     } else {
         if (shift_now && !is_shift_ifshift) {
             if (gs_lshift) zmk_hid_unregister_mods(MOD_LSFT);
@@ -303,7 +301,6 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
         if (!shift_now && is_shift) zmk_hid_register_mods(MOD_LSFT);
         zmk_hid_keyboard_release(regist);
         if (!shift_now && is_shift) zmk_hid_unregister_mods(MOD_LSFT);
-        zmk_hid_keyboard_report_send();
     }
 }
 
@@ -328,7 +325,6 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
         } else {
             zmk_hid_keyboard_release(INT1);
         }
-        zmk_hid_keyboard_report_send();
         return ZMK_EV_EVENT_HANDLED;
     }
 
@@ -413,12 +409,6 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
             return ZMK_EV_EVENT_HANDLED;
         case COLON:
             proc_regist_keycode(ev, QUOT, false, QUOT, false);
-            return ZMK_EV_EVENT_HANDLED;
-        case LS(N2):  // DQUOTE → LS(N2)
-            proc_regist_keycode(ev, N2, true, N2, true);
-            return ZMK_EV_EVENT_HANDLED;
-        case LS(MINUS):  // PEQL → LS(MINUS)
-            proc_regist_keycode(ev, MINUS, true, MINUS, true);
             return ZMK_EV_EVENT_HANDLED;
         case COMMA:
             proc_regist_keycode(ev, COMMA, false, COMMA, false);
