@@ -273,37 +273,41 @@ static bool gs_rshift = false;
  * proc_regist_keycode: 押下/解放イベントを受けて、
  * 変換先キー（シフトあり/なしそれぞれ）を適切に press/release する。
  */
+/*
+ * proc_regist_keycode: 押下/解放イベントを受けて、
+ * 変換先キー（シフトあり/なしそれぞれ）を適切に press/release する。
+ */
 static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
                                 uint32_t regist_ifshift, bool is_shift_ifshift,
                                 uint32_t regist, bool is_shift) {
     bool shift_now = gs_lshift || gs_rshift;
     struct zmk_keycode_state_changed new_ev = *ev;
 
-    if (ev->pressed) {
+    if (ev->state) {  // ← 'pressed' から 'state' に変更
         if (shift_now) {
             if (!is_shift_ifshift) {
                 if (gs_lshift) {
                     new_ev.keycode = KEY_LEFT_SHIFT;
-                    new_ev.pressed = false;
+                    new_ev.state = 0;
                     zmk_keymap_binding_process_record(&new_ev);
                 }
                 if (gs_rshift) {
                     new_ev.keycode = KEY_RIGHT_SHIFT;
-                    new_ev.pressed = false;
+                    new_ev.state = 0;
                     zmk_keymap_binding_process_record(&new_ev);
                 }
             }
             new_ev.keycode = regist_ifshift;
-            new_ev.pressed = true;
+            new_ev.state = 1;
             zmk_keymap_binding_process_record(&new_ev);
         } else {
             if (is_shift) {
                 new_ev.keycode = KEY_LEFT_SHIFT;
-                new_ev.pressed = true;
+                new_ev.state = 1;
                 zmk_keymap_binding_process_record(&new_ev);
             }
             new_ev.keycode = regist;
-            new_ev.pressed = true;
+            new_ev.state = 1;
             zmk_keymap_binding_process_record(&new_ev);
         }
     } else {
@@ -311,44 +315,44 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
         if (shift_now && !is_shift_ifshift) {
             if (gs_lshift) {
                 new_ev.keycode = KEY_LEFT_SHIFT;
-                new_ev.pressed = false;
+                new_ev.state = 0;
                 zmk_keymap_binding_process_record(&new_ev);
             }
             if (gs_rshift) {
                 new_ev.keycode = KEY_RIGHT_SHIFT;
-                new_ev.pressed = false;
+                new_ev.state = 0;
                 zmk_keymap_binding_process_record(&new_ev);
             }
         }
 
         new_ev.keycode = regist_ifshift;
-        new_ev.pressed = false;
+        new_ev.state = 0;
         zmk_keymap_binding_process_record(&new_ev);
 
         if (shift_now && !is_shift_ifshift) {
             if (gs_lshift) {
                 new_ev.keycode = KEY_LEFT_SHIFT;
-                new_ev.pressed = true;
+                new_ev.state = 1;
                 zmk_keymap_binding_process_record(&new_ev);
             }
             if (gs_rshift) {
                 new_ev.keycode = KEY_RIGHT_SHIFT;
-                new_ev.pressed = true;
+                new_ev.state = 1;
                 zmk_keymap_binding_process_record(&new_ev);
             }
         }
 
         if (!shift_now && is_shift) {
             new_ev.keycode = KEY_LEFT_SHIFT;
-            new_ev.pressed = true;
+            new_ev.state = 1;
             zmk_keymap_binding_process_record(&new_ev);
         }
         new_ev.keycode = regist;
-        new_ev.pressed = false;
+        new_ev.state = 0;
         zmk_keymap_binding_process_record(&new_ev);
         if (!shift_now && is_shift) {
             new_ev.keycode = KEY_LEFT_SHIFT;
-            new_ev.pressed = false;
+            new_ev.state = 0;
             zmk_keymap_binding_process_record(&new_ev);
         }
     }
@@ -364,10 +368,10 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
     /* シフトの物理状態をトラッキング */
     switch (keycode) {
     case KEY_LEFT_SHIFT:
-        gs_lshift = ev->pressed;
+        gs_lshift = ev->state;  // ← 'pressed' から 'state' に変更
         return ZMK_EV_EVENT_BUBBLE;
     case KEY_RIGHT_SHIFT:
-        gs_rshift = ev->pressed;
+        gs_rshift = ev->state;  // ← 'pressed' から 'state' に変更
         return ZMK_EV_EVENT_BUBBLE;
     }
 
