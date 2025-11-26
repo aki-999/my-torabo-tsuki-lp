@@ -289,26 +289,26 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
                 if (gs_lshift) {
                     new_ev.keycode = LEFT_SHIFT;
                     new_ev.state = 0;
-                    zmk_keymap_binding_process_record(&new_ev);
+                    ZMK_EVENT_RAISE(new_ev);
                 }
                 if (gs_rshift) {
                     new_ev.keycode = RIGHT_SHIFT;
                     new_ev.state = 0;
-                    zmk_keymap_binding_process_record(&new_ev);
+                    ZMK_EVENT_RAISE(new_ev);
                 }
             }
             new_ev.keycode = regist_ifshift;
             new_ev.state = 1;
-            zmk_keymap_binding_process_record(&new_ev);
+            ZMK_EVENT_RAISE(new_ev);
         } else {
             if (is_shift) {
                 new_ev.keycode = LEFT_SHIFT;
                 new_ev.state = 1;
-                zmk_keymap_binding_process_record(&new_ev);
+                ZMK_EVENT_RAISE(new_ev);
             }
             new_ev.keycode = regist;
             new_ev.state = 1;
-            zmk_keymap_binding_process_record(&new_ev);
+            ZMK_EVENT_RAISE(new_ev);
         }
     } else {
         /* release */
@@ -316,44 +316,44 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
             if (gs_lshift) {
                 new_ev.keycode = LEFT_SHIFT;
                 new_ev.state = 0;
-                zmk_keymap_binding_process_record(&new_ev);
+                ZMK_EVENT_RAISE(new_ev);
             }
             if (gs_rshift) {
                 new_ev.keycode = RIGHT_SHIFT;
                 new_ev.state = 0;
-                zmk_keymap_binding_process_record(&new_ev);
+                ZMK_EVENT_RAISE(new_ev);
             }
         }
 
         new_ev.keycode = regist_ifshift;
         new_ev.state = 0;
-        zmk_keymap_binding_process_record(&new_ev);
+        ZMK_EVENT_RAISE(new_ev);
 
         if (shift_now && !is_shift_ifshift) {
             if (gs_lshift) {
                 new_ev.keycode = LEFT_SHIFT;
                 new_ev.state = 1;
-                zmk_keymap_binding_process_record(&new_ev);
+                ZMK_EVENT_RAISE(new_ev);
             }
             if (gs_rshift) {
                 new_ev.keycode = RIGHT_SHIFT;
                 new_ev.state = 1;
-                zmk_keymap_binding_process_record(&new_ev);
+                ZMK_EVENT_RAISE(new_ev);
             }
         }
 
         if (!shift_now && is_shift) {
             new_ev.keycode = LEFT_SHIFT;
             new_ev.state = 1;
-            zmk_keymap_binding_process_record(&new_ev);
+            ZMK_EVENT_RAISE(new_ev);
         }
         new_ev.keycode = regist;
         new_ev.state = 0;
-        zmk_keymap_binding_process_record(&new_ev);
+        ZMK_EVENT_RAISE(new_ev);
         if (!shift_now && is_shift) {
             new_ev.keycode = LEFT_SHIFT;
             new_ev.state = 0;
-            zmk_keymap_binding_process_record(&new_ev);
+            ZMK_EVENT_RAISE(new_ev);
         }
     }
 }
@@ -378,8 +378,8 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
     /* CAPS: 半角/全角相当 */
     if (keycode == CAPSLOCK) {
         struct zmk_keycode_state_changed new_ev = *ev;
-        new_ev.keycode = INTL1;
-        zmk_keymap_binding_process_record(&new_ev);
+        new_ev.keycode = INT1;
+        ZMK_EVENT_RAISE(new_ev);
         return ZMK_EV_EVENT_HANDLED;
     }
 
