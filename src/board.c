@@ -270,17 +270,6 @@ static bool gs_lshift = false;
 static bool gs_rshift = false;
 
 /* HID キーコードを送信 */
-static void send_keycode(uint32_t keycode, bool press) {
-    struct zmk_hid_keypad_report *report = zmk_hid_get_keypad_report();
-    
-    if (press) {
-        zmk_hid_keypad_press(keycode);
-    } else {
-        zmk_hid_keypad_release(keycode);
-    }
-    zmk_hid_keypad_report_send();
-}
-
 static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
                                 uint32_t regist_ifshift, bool is_shift_ifshift,
                                 uint32_t regist, bool is_shift) {
@@ -292,18 +281,19 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
                 if (gs_lshift) zmk_hid_register_mods(MOD_LSFT);
                 if (gs_rshift) zmk_hid_register_mods(MOD_RSFT);
             }
-            send_keycode(regist_ifshift, true);
+            zmk_hid_keyboard_press(regist_ifshift);
         } else {
             if (is_shift) zmk_hid_register_mods(MOD_LSFT);
-            send_keycode(regist, true);
+            zmk_hid_keyboard_press(regist);
         }
+        zmk_hid_keyboard_report_send();
     } else {
         if (shift_now && !is_shift_ifshift) {
             if (gs_lshift) zmk_hid_unregister_mods(MOD_LSFT);
             if (gs_rshift) zmk_hid_unregister_mods(MOD_RSFT);
         }
 
-        send_keycode(regist_ifshift, false);
+        zmk_hid_keyboard_release(regist_ifshift);
 
         if (shift_now && !is_shift_ifshift) {
             if (gs_lshift) zmk_hid_register_mods(MOD_LSFT);
@@ -311,8 +301,9 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
         }
 
         if (!shift_now && is_shift) zmk_hid_register_mods(MOD_LSFT);
-        send_keycode(regist, false);
+        zmk_hid_keyboard_release(regist);
         if (!shift_now && is_shift) zmk_hid_unregister_mods(MOD_LSFT);
+        zmk_hid_keyboard_report_send();
     }
 }
 
@@ -332,7 +323,12 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
     }
 
     if (keycode == CAPSLOCK) {
-        send_keycode(INT1, ev->state);
+        if (ev->state) {
+            zmk_hid_keyboard_press(INT1);
+        } else {
+            zmk_hid_keyboard_release(INT1);
+        }
+        zmk_hid_keyboard_report_send();
         return ZMK_EV_EVENT_HANDLED;
     }
 
@@ -418,10 +414,10 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
         case COLON:
             proc_regist_keycode(ev, QUOT, false, QUOT, false);
             return ZMK_EV_EVENT_HANDLED;
-        case DQUOTE:
+        case LS(N2):  // DQUOTE → LS(N2)
             proc_regist_keycode(ev, N2, true, N2, true);
             return ZMK_EV_EVENT_HANDLED;
-        case PEQL:
+        case LS(MINUS):  // PEQL → LS(MINUS)
             proc_regist_keycode(ev, MINUS, true, MINUS, true);
             return ZMK_EV_EVENT_HANDLED;
         case COMMA:
