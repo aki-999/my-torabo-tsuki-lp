@@ -278,22 +278,18 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
         /* press */
         if (shift_now) {
             if (!is_shift_ifshift) {
-                /* shift を一時的に解除 */
                 zmk_hid_unregister_mods(MOD_LSFT | MOD_RSFT);
             }
             zmk_hid_keyboard_press(regist_ifshift);
-            zmk_hid_keypad_report_send();
         } else {
             if (is_shift) {
                 zmk_hid_register_mods(MOD_LSFT);
             }
             zmk_hid_keyboard_press(regist);
-            zmk_hid_keypad_report_send();
         }
     } else {
         /* release */
         if (shift_now && !is_shift_ifshift) {
-            /* shift を復元 */
             if (gs_lshift) zmk_hid_register_mods(MOD_LSFT);
             if (gs_rshift) zmk_hid_register_mods(MOD_RSFT);
         }
@@ -309,7 +305,6 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
             if (gs_lshift) zmk_hid_unregister_mods(MOD_LSFT);
             if (gs_rshift) zmk_hid_unregister_mods(MOD_RSFT);
         }
-        zmk_hid_keypad_report_send();
     }
 }
 
@@ -334,7 +329,6 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
         } else {
             zmk_hid_keyboard_release(INT1);
         }
-        zmk_hid_keypad_report_send();
         return ZMK_EV_EVENT_HANDLED;
     }
 
