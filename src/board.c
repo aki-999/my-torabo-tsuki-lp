@@ -269,10 +269,18 @@ SYS_INIT(split_power_mgmt_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 static bool gs_lshift = false;
 static bool gs_rshift = false;
 
-/*
- * proc_regist_keycode: 押下/解放イベントを受けて、
- * 変換先キー（シフトあり/なしそれぞれ）を適切に press/release する。
- */
+/* HID キーコードを送信 */
+static void send_keycode(uint32_t keycode, bool press) {
+    struct zmk_hid_keypad_report *report = zmk_hid_get_keypad_report();
+    
+    if (press) {
+        zmk_hid_keypad_press(keycode);
+    } else {
+        zmk_hid_keypad_release(keycode);
+    }
+    zmk_hid_keypad_report_send();
+}
+
 static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
                                 uint32_t regist_ifshift, bool is_shift_ifshift,
                                 uint32_t regist, bool is_shift) {
@@ -281,42 +289,39 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
     if (ev->state) {
         if (shift_now) {
             if (!is_shift_ifshift) {
-                if (gs_lshift) zmk_hid_register_mod(MOD_LSFT);
-                if (gs_rshift) zmk_hid_register_mod(MOD_RSFT);
+                if (gs_lshift) zmk_hid_register_mods(MOD_LSFT);
+                if (gs_rshift) zmk_hid_register_mods(MOD_RSFT);
             }
-            zmk_hid_register_keycode(regist_ifshift);
+            send_keycode(regist_ifshift, true);
         } else {
-            if (is_shift) zmk_hid_register_mod(MOD_LSFT);
-            zmk_hid_register_keycode(regist);
+            if (is_shift) zmk_hid_register_mods(MOD_LSFT);
+            send_keycode(regist, true);
         }
     } else {
-        /* release */
         if (shift_now && !is_shift_ifshift) {
-            if (gs_lshift) zmk_hid_unregister_mod(MOD_LSFT);
-            if (gs_rshift) zmk_hid_unregister_mod(MOD_RSFT);
+            if (gs_lshift) zmk_hid_unregister_mods(MOD_LSFT);
+            if (gs_rshift) zmk_hid_unregister_mods(MOD_RSFT);
         }
 
-        zmk_hid_unregister_keycode(regist_ifshift);
+        send_keycode(regist_ifshift, false);
 
         if (shift_now && !is_shift_ifshift) {
-            if (gs_lshift) zmk_hid_register_mod(MOD_LSFT);
-            if (gs_rshift) zmk_hid_register_mod(MOD_RSFT);
+            if (gs_lshift) zmk_hid_register_mods(MOD_LSFT);
+            if (gs_rshift) zmk_hid_register_mods(MOD_RSFT);
         }
 
-        if (!shift_now && is_shift) zmk_hid_register_mod(MOD_LSFT);
-        zmk_hid_unregister_keycode(regist);
-        if (!shift_now && is_shift) zmk_hid_unregister_mod(MOD_LSFT);
+        if (!shift_now && is_shift) zmk_hid_register_mods(MOD_LSFT);
+        send_keycode(regist, false);
+        if (!shift_now && is_shift) zmk_hid_unregister_mods(MOD_LSFT);
     }
 }
 
-/* キーイベントを受けて変換を行うリスナー */
 static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
     const struct zmk_keycode_state_changed *ev = as_zmk_keycode_state_changed(eh);
     if (!ev) return ZMK_EV_EVENT_BUBBLE;
 
     uint32_t keycode = ev->keycode;
 
-    /* シフトの物理状態をトラッキング */
     switch (keycode) {
     case LEFT_SHIFT:
         gs_lshift = ev->state;
@@ -326,17 +331,11 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 
-    /* CAPS: 半角/全角相当 */
     if (keycode == CAPSLOCK) {
-        if (ev->state) {
-            zmk_hid_register_keycode(INT1);
-        } else {
-            zmk_hid_unregister_keycode(INT1);
-        }
+        send_keycode(INT1, ev->state);
         return ZMK_EV_EVENT_HANDLED;
     }
 
-    /* JIS ↔ US 配列変換テーブル */
     switch (keycode) {
         case N2:
             proc_regist_keycode(ev, LBRC, false, N2, false);
@@ -348,7 +347,7 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
             proc_regist_keycode(ev, N6, true, N7, false);
             return ZMK_EV_EVENT_HANDLED;
         case N8:
-            proc_regist_keycode(ev, QUOTE, true, N8, false);
+            proc_regist_keycode(ev, QUOT, true, N8, false);
             return ZMK_EV_EVENT_HANDLED;
         case N9:
             proc_regist_keycode(ev, N8, true, N9, false);
@@ -372,9 +371,9 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
             proc_regist_keycode(ev, INT3, true, INT1, false);
             return ZMK_EV_EVENT_HANDLED;
         case SEMICOLON:
-            proc_regist_keycode(ev, QUOTE, false, SEMICOLON, false);
+            proc_regist_keycode(ev, QUOT, false, SEMICOLON, false);
             return ZMK_EV_EVENT_HANDLED;
-        case QUOTE:
+        case QUOT:
             proc_regist_keycode(ev, N2, true, N7, true);
             return ZMK_EV_EVENT_HANDLED;
         case GRAVE:
@@ -393,7 +392,7 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
             proc_regist_keycode(ev, N6, true, N6, true);
             return ZMK_EV_EVENT_HANDLED;
         case ASTERISK:
-            proc_regist_keycode(ev, QUOTE, true, QUOTE, true);
+            proc_regist_keycode(ev, QUOT, true, QUOT, true);
             return ZMK_EV_EVENT_HANDLED;
         case LPAR:
             proc_regist_keycode(ev, N8, true, N8, true);
@@ -417,7 +416,7 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
             proc_regist_keycode(ev, INT3, true, INT3, true);
             return ZMK_EV_EVENT_HANDLED;
         case COLON:
-            proc_regist_keycode(ev, QUOTE, false, QUOTE, false);
+            proc_regist_keycode(ev, QUOT, false, QUOT, false);
             return ZMK_EV_EVENT_HANDLED;
         case DQUOTE:
             proc_regist_keycode(ev, N2, true, N2, true);
