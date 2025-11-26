@@ -283,16 +283,16 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
     bool shift_now = gs_lshift || gs_rshift;
     struct zmk_keycode_state_changed new_ev = *ev;
 
-    if (ev->state) {  // ← 'pressed' から 'state' に変更
+    if (ev->state) {
         if (shift_now) {
             if (!is_shift_ifshift) {
                 if (gs_lshift) {
-                    new_ev.keycode = KEY_LEFT_SHIFT;
+                    new_ev.keycode = LEFT_SHIFT;
                     new_ev.state = 0;
                     zmk_keymap_binding_process_record(&new_ev);
                 }
                 if (gs_rshift) {
-                    new_ev.keycode = KEY_RIGHT_SHIFT;
+                    new_ev.keycode = RIGHT_SHIFT;
                     new_ev.state = 0;
                     zmk_keymap_binding_process_record(&new_ev);
                 }
@@ -302,7 +302,7 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
             zmk_keymap_binding_process_record(&new_ev);
         } else {
             if (is_shift) {
-                new_ev.keycode = KEY_LEFT_SHIFT;
+                new_ev.keycode = LEFT_SHIFT;
                 new_ev.state = 1;
                 zmk_keymap_binding_process_record(&new_ev);
             }
@@ -314,12 +314,12 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
         /* release */
         if (shift_now && !is_shift_ifshift) {
             if (gs_lshift) {
-                new_ev.keycode = KEY_LEFT_SHIFT;
+                new_ev.keycode = LEFT_SHIFT;
                 new_ev.state = 0;
                 zmk_keymap_binding_process_record(&new_ev);
             }
             if (gs_rshift) {
-                new_ev.keycode = KEY_RIGHT_SHIFT;
+                new_ev.keycode = RIGHT_SHIFT;
                 new_ev.state = 0;
                 zmk_keymap_binding_process_record(&new_ev);
             }
@@ -331,19 +331,19 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
 
         if (shift_now && !is_shift_ifshift) {
             if (gs_lshift) {
-                new_ev.keycode = KEY_LEFT_SHIFT;
+                new_ev.keycode = LEFT_SHIFT;
                 new_ev.state = 1;
                 zmk_keymap_binding_process_record(&new_ev);
             }
             if (gs_rshift) {
-                new_ev.keycode = KEY_RIGHT_SHIFT;
+                new_ev.keycode = RIGHT_SHIFT;
                 new_ev.state = 1;
                 zmk_keymap_binding_process_record(&new_ev);
             }
         }
 
         if (!shift_now && is_shift) {
-            new_ev.keycode = KEY_LEFT_SHIFT;
+            new_ev.keycode = LEFT_SHIFT;
             new_ev.state = 1;
             zmk_keymap_binding_process_record(&new_ev);
         }
@@ -351,7 +351,7 @@ static void proc_regist_keycode(const struct zmk_keycode_state_changed *ev,
         new_ev.state = 0;
         zmk_keymap_binding_process_record(&new_ev);
         if (!shift_now && is_shift) {
-            new_ev.keycode = KEY_LEFT_SHIFT;
+            new_ev.keycode = LEFT_SHIFT;
             new_ev.state = 0;
             zmk_keymap_binding_process_record(&new_ev);
         }
@@ -367,113 +367,113 @@ static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
 
     /* シフトの物理状態をトラッキング */
     switch (keycode) {
-    case KEY_LEFT_SHIFT:
-        gs_lshift = ev->state;  // ← 'pressed' から 'state' に変更
+    case LEFT_SHIFT:
+        gs_lshift = ev->state;
         return ZMK_EV_EVENT_BUBBLE;
-    case KEY_RIGHT_SHIFT:
-        gs_rshift = ev->state;  // ← 'pressed' から 'state' に変更
+    case RIGHT_SHIFT:
+        gs_rshift = ev->state;
         return ZMK_EV_EVENT_BUBBLE;
     }
 
     /* CAPS: 半角/全角相当 */
-    if (keycode == KEY_CAPSLOCK) {
+    if (keycode == CAPSLOCK) {
         struct zmk_keycode_state_changed new_ev = *ev;
-        new_ev.keycode = KEY_INTERNATIONAL1;
+        new_ev.keycode = INTL1;
         zmk_keymap_binding_process_record(&new_ev);
         return ZMK_EV_EVENT_HANDLED;
     }
 
     /* JIS ↔ US 配列変換テーブル */
     switch (keycode) {
-        case KEY_2:
-            proc_regist_keycode(ev, KEY_LEFT_BRACE, false, KEY_2, false);
+        case N2:  // KEY_2 → N2
+            proc_regist_keycode(ev, LBRC, false, N2, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_6:
-            proc_regist_keycode(ev, KEY_EQUAL, false, KEY_6, false);
+        case N6:  // KEY_6 → N6
+            proc_regist_keycode(ev, EQUAL, false, N6, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_7:
-            proc_regist_keycode(ev, KEY_6, true, KEY_7, false);
+        case N7:
+            proc_regist_keycode(ev, N6, true, N7, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_8:
-            proc_regist_keycode(ev, KEY_QUOTE, true, KEY_8, false);
+        case N8:
+            proc_regist_keycode(ev, QUOTE, true, N8, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_9:
-            proc_regist_keycode(ev, KEY_8, true, KEY_9, false);
+        case N9:
+            proc_regist_keycode(ev, N8, true, N9, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_0:
-            proc_regist_keycode(ev, KEY_9, true, KEY_0, false);
+        case N0:
+            proc_regist_keycode(ev, N9, true, N0, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_MINUS:
-            proc_regist_keycode(ev, KEY_INT1, true, KEY_MINUS, false);
+        case MINUS:
+            proc_regist_keycode(ev, INT1, true, MINUS, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_EQUAL:
-            proc_regist_keycode(ev, KEY_SEMICOLON, true, KEY_MINUS, true);
+        case EQUAL:
+            proc_regist_keycode(ev, SEMICOLON, true, MINUS, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_LEFT_BRACE:
-            proc_regist_keycode(ev, KEY_RIGHT_BRACE, true, KEY_RIGHT_BRACE, false);
+        case LBRC:
+            proc_regist_keycode(ev, RBRC, true, RBRC, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_RIGHT_BRACE:
-            proc_regist_keycode(ev, KEY_NON_US_HASH, true, KEY_NON_US_HASH, false);
+        case RBRC:
+            proc_regist_keycode(ev, NON_US_HASH, true, NON_US_HASH, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_BACKSLASH:
-            proc_regist_keycode(ev, KEY_INT3, true, KEY_INT1, false);
+        case BSLH:  // KEY_BACKSLASH → BSLH
+            proc_regist_keycode(ev, INT3, true, INT1, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_SEMICOLON:
-            proc_regist_keycode(ev, KEY_QUOTE, false, KEY_SEMICOLON, false);
+        case SEMICOLON:
+            proc_regist_keycode(ev, QUOTE, false, SEMICOLON, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_QUOTE:
-            proc_regist_keycode(ev, KEY_2, true, KEY_7, true);
+        case QUOTE:
+            proc_regist_keycode(ev, N2, true, N7, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_GRAVE:
-            proc_regist_keycode(ev, KEY_EQUAL, true, KEY_LEFT_BRACE, true);
+        case GRAVE:
+            proc_regist_keycode(ev, EQUAL, true, LBRC, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_TILD:
-            proc_regist_keycode(ev, KEY_EQUAL, true, KEY_EQUAL, true);
+        case TILD:
+            proc_regist_keycode(ev, EQUAL, true, EQUAL, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_AT:
-            proc_regist_keycode(ev, KEY_LEFT_BRACE, false, KEY_LEFT_BRACE, false);
+        case AT:
+            proc_regist_keycode(ev, LBRC, false, LBRC, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_CARET:
-            proc_regist_keycode(ev, KEY_EQUAL, false, KEY_EQUAL, false);
+        case CARET:
+            proc_regist_keycode(ev, EQUAL, false, EQUAL, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_AMPERSAND:
-            proc_regist_keycode(ev, KEY_6, true, KEY_6, true);
+        case AMPERSAND:
+            proc_regist_keycode(ev, N6, true, N6, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_ASTERISK:
-            proc_regist_keycode(ev, KEY_QUOTE, true, KEY_QUOTE, true);
+        case ASTERISK:
+            proc_regist_keycode(ev, QUOTE, true, QUOTE, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_LEFT_PAREN:
-            proc_regist_keycode(ev, KEY_8, true, KEY_8, true);
+        case LPAR:  // KEY_LEFT_PAREN → LPAR
+            proc_regist_keycode(ev, N8, true, N8, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_RIGHT_PAREN:
-            proc_regist_keycode(ev, KEY_9, true, KEY_9, true);
+        case RPAR:  // KEY_RIGHT_PAREN → RPAR
+            proc_regist_keycode(ev, N9, true, N9, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_UNDERSCORE:
-            proc_regist_keycode(ev, KEY_INT1, true, KEY_INT1, true);
+        case UNDER:  // KEY_UNDERSCORE → UNDER
+            proc_regist_keycode(ev, INT1, true, INT1, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_PLUS:
-            proc_regist_keycode(ev, KEY_SEMICOLON, true, KEY_SEMICOLON, true);
+        case PLUS:
+            proc_regist_keycode(ev, SEMICOLON, true, SEMICOLON, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_LEFT_CURLY:
-            proc_regist_keycode(ev, KEY_RIGHT_BRACE, true, KEY_RIGHT_BRACE, true);
+        case LBKT:  // KEY_LEFT_CURLY → LBKT (疑問: LEFT_CURLYは存在しないため LBRC で代用)
+            proc_regist_keycode(ev, RBRC, true, RBRC, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_RIGHT_CURLY:
-            proc_regist_keycode(ev, KEY_NON_US_HASH, true, KEY_NON_US_HASH, true);
+        case RBKT:  // KEY_RIGHT_CURLY → RBKT
+            proc_regist_keycode(ev, NON_US_HASH, true, NON_US_HASH, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_PIPE:
-            proc_regist_keycode(ev, KEY_INT3, true, KEY_INT3, true);
+        case PIPE:
+            proc_regist_keycode(ev, INT3, true, INT3, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_COLON:
-            proc_regist_keycode(ev, KEY_QUOTE, false, KEY_QUOTE, false);
+        case COLON:
+            proc_regist_keycode(ev, QUOTE, false, QUOTE, false);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_DQUOTE:
-            proc_regist_keycode(ev, KEY_2, true, KEY_2, true);
+        case DQUOTE:
+            proc_regist_keycode(ev, N2, true, N2, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_PEQUAL:
-            proc_regist_keycode(ev, KEY_MINUS, true, KEY_MINUS, true);
+        case PEQL:  // KEY_PEQUAL → PEQL
+            proc_regist_keycode(ev, MINUS, true, MINUS, true);
             return ZMK_EV_EVENT_HANDLED;
-        case KEY_COMMA:
-            proc_regist_keycode(ev, KEY_COMMA, false, KEY_COMMA, false);
+        case COMMA:
+            proc_regist_keycode(ev, COMMA, false, COMMA, false);
             return ZMK_EV_EVENT_HANDLED;
     }
 
