@@ -303,9 +303,6 @@ static const struct {
     {DQT, LS(QUOT)},
 };
 
-static bool gs_lshift = false;
-static bool gs_rshift = false;
-
 static int us_printed_on_jis_keycode_listener(const zmk_event_t *eh) {
     const struct zmk_keycode_state_changed *ev = as_zmk_keycode_state_changed(eh);
     if (!ev) return ZMK_EV_EVENT_BUBBLE;
