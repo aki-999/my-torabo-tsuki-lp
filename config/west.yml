@@ -24,5 +24,8 @@ manifest:
     - name: zmk-feature-non-lipo-battery-management
       remote: sekigon-gonnoc
       revision: main
+    - name: zmk-layout-shift
+      remote: kot149
+      revision: v1
   self:
     path: config
