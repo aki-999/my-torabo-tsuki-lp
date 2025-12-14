@@ -15,9 +15,6 @@
 #include <zmk/events/activity_state_changed.h>
 #include <zmk/events/split_peripheral_status_changed.h>
 #include <zmk/usb.h>
-#include <zmk/event_manager.h>
-#include <zmk/hid.h>
-#include <zmk/keys.h>
 
 LOG_MODULE_REGISTER(split_power_mgmt, CONFIG_ZMK_LOG_LEVEL);
 
