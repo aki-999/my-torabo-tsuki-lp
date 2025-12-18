@@ -69,11 +69,11 @@
 
         layer_5 {
             bindings = <
-&trans  &trans          &trans  &trans  &trans  &trans                    &trans  &trans  &trans  &trans   &trans     &trans
-&trans  &trans          &trans  &trans  &trans  &trans                    &trans  &trans  &trans  &trans   &trans     &trans
-&trans  &trans          &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &kp SQT  &kp COLON  &trans
-&trans  &kp LEFT_SHIFT  &trans  &trans  &trans  &trans  &kp PLUS  &trans  &trans  &trans  &trans  &trans   &trans     &trans
-&trans  &trans          &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans   &trans     &trans
+&trans  &trans          &trans  &trans  &trans  &trans                    &trans  &trans           &trans    &trans   &trans     &trans
+&trans  &trans          &trans  &trans  &trans  &trans                    &trans  &trans           &trans    &trans   &trans     &trans
+&trans  &trans          &trans  &trans  &trans  &trans  &trans    &trans  &trans  &kp RIGHT_BRACE  &kp PIPE  &kp SQT  &kp COLON  &trans
+&trans  &kp LEFT_SHIFT  &trans  &trans  &trans  &trans  &kp PLUS  &trans  &trans  &kp LS(INT_YEN)  &trans    &trans   &trans     &trans
+&trans  &trans          &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans           &trans    &trans   &trans     &trans
             >;
         };
     };
